@@ -1,69 +1,191 @@
-import Image from "next/image";
+"use client";
+
+import { useState, type FormEvent } from "react";
 import styles from "./page.module.css";
 
+// 収支データの型定義
+type Transaction = {
+  id: string;
+  type: "income" | "expense";
+  amount: number;
+  description: string;
+  date: string;
+};
+
 export default function Home() {
+  // 入力フォームの状態管理
+  const [type, setType] = useState<"income" | "expense">("expense");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [records, setRecords] = useState<Transaction[]>([]);
+
+  // 始め：日付の状態管理
+  const [date, setDate] = useState("");
+
+  // 表示する月の状態管理
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+
+    return `${year}-${month}`;
+  });
+  // 終わり
+
+  // 始め：選択した月のデータを取得
+  const monthlyRecords = records.filter(
+    (record) => record.date.slice(0, 7) === selectedMonth,
+  );
+  // 終わり
+
+  // 収入の合計
+  const income = monthlyRecords
+    .filter((record) => record.type === "income")
+    .reduce((sum, record) => sum + record.amount, 0);
+
+  // 支出の合計
+  const expense = monthlyRecords
+    .filter((record) => record.type === "expense")
+    .reduce((sum, record) => sum + record.amount, 0);
+
+  // 収支の差額
+  const balance = income - expense;
+
+  // 登録ボタンを押したときの処理
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const value = Number(amount);
+
+    // 始め：日付も含めた入力チェック
+    if (
+      !Number.isSafeInteger(value) ||
+      value <= 0 ||
+      !description.trim() ||
+      !date
+    ) {
+      alert("正しい金額・内容・日付を入力してください");
+      return;
+    }
+    // 終わり
+
+    // 新しい収支データを作成
+    const newRecord: Transaction = {
+      id: crypto.randomUUID(),
+      type: type,
+      amount: value,
+      description: description.trim(),
+
+      // 始め：日付を保存
+      date: date,
+      // 終わり
+    };
+
+    // 収支履歴に追加
+    setRecords((prev) => [...prev, newRecord]);
+
+    // 入力欄を初期化
+    setAmount("");
+    setDescription("");
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className={styles.page}>
+      <h1>収支管理アプリ</h1>
+
+      {/* 始め：月別の収支表示 */}
+      <h2>月別の収支</h2>
+
+      <label>
+        表示する月：
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
         />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      </label>
+
+      <p>収入：{income.toLocaleString()}円</p>
+      <p>支出：{expense.toLocaleString()}円</p>
+      <p>
+        収支：{balance > 0 ? "+" : ""}
+        {balance.toLocaleString()}円
+      </p>
+      {/* 終わり */}
+
+      <h2>収支を登録</h2>
+
+      <form onSubmit={handleSubmit}>
+        {/* 始め：日付入力欄 */}
+        <div>
+          <label>
+            日付：
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </label>
         </div>
-      </main>
-    </div>
+        {/* 終わり */}
+
+        <div>
+          <label>
+            種別：
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as "income" | "expense")}
+            >
+              <option value="income">収入</option>
+              <option value="expense">支出</option>
+            </select>
+          </label>
+        </div>
+
+        <div>
+          <label>
+            金額：
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
+          </label>
+        </div>
+
+        <div>
+          <label>
+            内容：
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="例：食費、アルバイト代"
+              required
+            />
+          </label>
+        </div>
+
+        <button type="submit">登録</button>
+      </form>
+
+      {/* 始め：選択した月の履歴を表示 */}
+      <h2>登録履歴</h2>
+
+      <ul>
+        {monthlyRecords.map((record) => (
+          <li key={record.id}>
+            {record.date}　{record.description}：
+            {record.type === "income" ? "+" : "-"}
+            {record.amount.toLocaleString()}円
+          </li>
+        ))}
+      </ul>
+      {/* 終わり */}
+    </main>
   );
 }
