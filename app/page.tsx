@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import styles from "./page.module.css";
 import { supabase } from "../lib/supabase";
+import Link from "next/link";
 
 // 収支データの型定義
 type Transaction = {
@@ -19,6 +20,34 @@ export default function Home() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [records, setRecords] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    // Supabaseから収支記録を取得
+    async function fetchRecords() {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("id, type, amount, description, date")
+        .order("date", { ascending: false });
+
+      if (error) {
+        console.error("取得エラー:", error.message);
+        return;
+      }
+
+      // 取得したデータをReactの状態に反映
+      const loadedRecords: Transaction[] = (data ?? []).map((record) => ({
+        id: record.id,
+        type: record.type as Transaction["type"],
+        amount: record.amount,
+        description: record.description,
+        date: record.date,
+      }));
+
+      setRecords(loadedRecords);
+    }
+
+    fetchRecords();
+  }, []);
 
   //：日付の状態管理
   const [date, setDate] = useState("");
@@ -94,97 +123,143 @@ export default function Home() {
 
   return (
     <main className={styles.page}>
-      <h1>収支管理アプリ</h1>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1>収支管理アプリ</h1>
+          <Link href="/records">すべての収支履歴を見る</Link>
+          <p>毎月の収入と支出を管理できます</p>
+        </header>
 
-      {/*：月別の収支表示 */}
-      <h2>月別の収支</h2>
+        {/* 月別収支 */}
+        <section className={styles.section}>
+          <h2>月別の収支</h2>
 
-      <label>
-        表示する月：
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-        />
-      </label>
-
-      <p>収入：{income.toLocaleString()}円</p>
-      <p>支出：{expense.toLocaleString()}円</p>
-      <p>
-        収支：{balance > 0 ? "+" : ""}
-        {balance.toLocaleString()}円
-      </p>
-      <h2>収支を登録</h2>
-
-      <form onSubmit={handleSubmit}>
-        {/*：日付入力欄 */}
-        <div>
-          <label>
-            日付：
+          <label className={styles.monthPicker}>
+            表示する月：
             <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
             />
           </label>
-        </div>
 
-        <div>
-          <label>
-            種別：
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as "income" | "expense")}
-            >
-              <option value="income">収入</option>
-              <option value="expense">支出</option>
-            </select>
-          </label>
-        </div>
+          <div className={styles.summaryGrid}>
+            <div className={styles.card}>
+              <span>収入合計</span>
+              <strong className={styles.positive}>
+                +{income.toLocaleString()}円
+              </strong>
+            </div>
 
-        <div>
-          <label>
-            金額：
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </label>
-        </div>
+            <div className={styles.card}>
+              <span>支出合計</span>
+              <strong className={styles.negative}>
+                -{expense.toLocaleString()}円
+              </strong>
+            </div>
 
-        <div>
-          <label>
-            内容：
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="例：食費、アルバイト代"
-              required
-            />
-          </label>
-        </div>
+            <div className={styles.card}>
+              <span>収支差額</span>
+              <strong
+                className={balance < 0 ? styles.negative : styles.positive}
+              >
+                {balance > 0 ? "+" : ""}
+                {balance.toLocaleString()}円
+              </strong>
+            </div>
+          </div>
+        </section>
 
-        <button type="submit">登録</button>
-      </form>
+        {/* 収支登録フォーム */}
+        <section className={styles.section}>
+          <h2>収支を登録</h2>
 
-      {/* 選択した月の履歴を表示 */}
-      <h2>登録履歴</h2>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.formGrid}>
+              <label className={styles.field}>
+                日付
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </label>
 
-      <ul>
-        {monthlyRecords.map((record) => (
-          <li key={record.id}>
-            {record.date}　{record.description}：
-            {record.type === "income" ? "+" : "-"}
-            {record.amount.toLocaleString()}円
-          </li>
-        ))}
-      </ul>
+              <label className={styles.field}>
+                種別
+                <select
+                  value={type}
+                  onChange={(e) =>
+                    setType(e.target.value as "income" | "expense")
+                  }
+                >
+                  <option value="income">収入</option>
+                  <option value="expense">支出</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                金額
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+              </label>
+
+              <label className={styles.field}>
+                内容
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="例：食費、アルバイト代"
+                  required
+                />
+              </label>
+            </div>
+
+            <button type="submit" className={styles.submitButton}>
+              登録する
+            </button>
+          </form>
+        </section>
+
+        {/* 登録履歴 */}
+        <section className={styles.section}>
+          <h2>登録履歴</h2>
+
+          {monthlyRecords.length === 0 ? (
+            <p className={styles.empty}>この月の記録はありません。</p>
+          ) : (
+            <ul className={styles.recordList}>
+              {monthlyRecords.map((record) => (
+                <li key={record.id} className={styles.recordItem}>
+                  <div className={styles.recordInfo}>
+                    <span className={styles.recordDate}>{record.date}</span>
+                    <strong>{record.description}</strong>
+                  </div>
+
+                  <strong
+                    className={
+                      record.type === "income"
+                        ? styles.positive
+                        : styles.negative
+                    }
+                  >
+                    {record.type === "income" ? "+" : "-"}
+                    {record.amount.toLocaleString()}円
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
