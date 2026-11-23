@@ -69,17 +69,6 @@ export default function Home() {
       return;
     }
     //
-
-    // 新しい収支データを作成
-    const newRecord: Transaction = {
-      id: crypto.randomUUID(),
-      type: type,
-      amount: value,
-      description: description.trim(),
-
-      //日付を保存
-      date: date,
-    };
     // Supabaseに収支データを保存
     const { data, error } = await supabase
       .from("transactions")
@@ -99,13 +88,6 @@ export default function Home() {
 
     // 保存に成功したデータを画面に追加
     setRecords((prev) => [...prev, data]);
-    setAmount("");
-    setDescription("");
-
-    // 収支履歴に追加
-    setRecords((prev) => [...prev, newRecord]);
-
-    // 入力欄を初期化
     setAmount("");
     setDescription("");
   }
