@@ -1,0 +1,36 @@
+.page {
+  width: 100%;
+  max-width: 440px;
+  margin: 60px auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form input {
+  padding: 12px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  color: #111;
+  background: white;
+}
+
+.page button {
+  padding: 12px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  cursor: pointer;
+}

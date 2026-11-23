@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import styles from "./page.module.css";
+import { supabase } from "../lib/supabase";
 
 // 収支データの型定義
 type Transaction = {
@@ -19,7 +20,7 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [records, setRecords] = useState<Transaction[]>([]);
 
-  // 始め：日付の状態管理
+  //：日付の状態管理
   const [date, setDate] = useState("");
 
   // 表示する月の状態管理
@@ -30,13 +31,13 @@ export default function Home() {
 
     return `${year}-${month}`;
   });
-  // 終わり
+  //
 
-  // 始め：選択した月のデータを取得
+  //：選択した月のデータを取得
   const monthlyRecords = records.filter(
     (record) => record.date.slice(0, 7) === selectedMonth,
   );
-  // 終わり
+  //
 
   // 収入の合計
   const income = monthlyRecords
@@ -52,12 +53,12 @@ export default function Home() {
   const balance = income - expense;
 
   // 登録ボタンを押したときの処理
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const value = Number(amount);
 
-    // 始め：日付も含めた入力チェック
+    //：日付も含めた入力チェック
     if (
       !Number.isSafeInteger(value) ||
       value <= 0 ||
@@ -67,7 +68,7 @@ export default function Home() {
       alert("正しい金額・内容・日付を入力してください");
       return;
     }
-    // 終わり
+    //
 
     // 新しい収支データを作成
     const newRecord: Transaction = {
@@ -76,10 +77,30 @@ export default function Home() {
       amount: value,
       description: description.trim(),
 
-      // 始め：日付を保存
+      //日付を保存
       date: date,
-      // 終わり
     };
+    // Supabaseに収支データを保存
+    const { data, error } = await supabase
+      .from("transactions")
+      .insert({
+        type: type,
+        amount: value,
+        description: description.trim(),
+        date: date,
+      })
+      .select("id, type, amount, description, date")
+      .single();
+
+    if (error) {
+      alert("保存に失敗しました：" + error.message);
+      return;
+    }
+
+    // 保存に成功したデータを画面に追加
+    setRecords((prev) => [...prev, data]);
+    setAmount("");
+    setDescription("");
 
     // 収支履歴に追加
     setRecords((prev) => [...prev, newRecord]);
@@ -93,7 +114,7 @@ export default function Home() {
     <main className={styles.page}>
       <h1>収支管理アプリ</h1>
 
-      {/* 始め：月別の収支表示 */}
+      {/*：月別の収支表示 */}
       <h2>月別の収支</h2>
 
       <label>
@@ -111,12 +132,10 @@ export default function Home() {
         収支：{balance > 0 ? "+" : ""}
         {balance.toLocaleString()}円
       </p>
-      {/* 終わり */}
-
       <h2>収支を登録</h2>
 
       <form onSubmit={handleSubmit}>
-        {/* 始め：日付入力欄 */}
+        {/*：日付入力欄 */}
         <div>
           <label>
             日付：
@@ -128,7 +147,6 @@ export default function Home() {
             />
           </label>
         </div>
-        {/* 終わり */}
 
         <div>
           <label>
@@ -173,7 +191,7 @@ export default function Home() {
         <button type="submit">登録</button>
       </form>
 
-      {/* 始め：選択した月の履歴を表示 */}
+      {/* 選択した月の履歴を表示 */}
       <h2>登録履歴</h2>
 
       <ul>
@@ -185,7 +203,6 @@ export default function Home() {
           </li>
         ))}
       </ul>
-      {/* 終わり */}
     </main>
   );
 }
