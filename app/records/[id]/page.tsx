@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 import styles from "./page.module.css";
@@ -19,6 +19,10 @@ export default function RecordDetailPage() {
   // URLからidを取得
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const router = useRouter();
+
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const [record, setRecord] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,6 +82,53 @@ export default function RecordDetailPage() {
     };
   }, [id]);
 
+  async function handleDelete() {
+    if (!record || deleting) return;
+
+    // 削除前に確認する
+    const confirmed = window.confirm("この収支記録を削除しますか？");
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      // ログイン状態を確認
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        setDeleteError("ログインが必要です。");
+        return;
+      }
+
+      // Supabaseから対象の記録を削除
+      const { data, error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", record.id)
+        .select("id");
+
+      if (error) {
+        setDeleteError(error.message);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setDeleteError("削除対象が見つからないか、削除権限がありません。");
+        return;
+      }
+
+      // 削除成功後、一覧ページへ移動
+      router.replace("/records");
+    } catch {
+      setDeleteError("通信エラーが発生しました。");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -121,6 +172,22 @@ export default function RecordDetailPage() {
                 {record.type === "income" ? "+" : "-"}
                 {record.amount.toLocaleString()}円
               </strong>
+            </div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className={styles.deleteButton}
+              >
+                {deleting ? "削除中..." : "削除する"}
+              </button>
+
+              {deleteError && (
+                <p role="alert" className={styles.error}>
+                  {deleteError}
+                </p>
+              )}
             </div>
           </div>
         )}
