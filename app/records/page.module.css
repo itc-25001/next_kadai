@@ -94,3 +94,34 @@
     font-size: 14px;
   }
 }
+
+.searchBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.searchBox label {
+  font-weight: 600;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #1f2937;
+  font: inherit;
+}
+
+.searchInput:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.searchBox p {
+  color: #6b7280;
+  font-size: 14px;
+}

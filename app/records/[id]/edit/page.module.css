@@ -1,0 +1,82 @@
+.page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: #f5f7fb;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.container h1 {
+  font-size: 30px;
+  margin-bottom: 30px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #1f2937;
+  font: inherit;
+}
+
+.saveButton {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.saveButton:hover {
+  background-color: #1d4ed8;
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.backLink {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.error {
+  color: #dc2626;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px 12px;
+  }
+
+  .form {
+    padding: 18px;
+  }
+}

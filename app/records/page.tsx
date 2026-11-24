@@ -17,6 +17,7 @@ type Transaction = {
 export default function RecordsPage() {
   // 収支履歴を管理
   const [records, setRecords] = useState<Transaction[]>([]);
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notSignedIn, setNotSignedIn] = useState(false);
@@ -70,6 +71,11 @@ export default function RecordsPage() {
     };
   }, []);
 
+  // 検索キーワードを含む記録だけを抽出
+  const filteredRecords = records.filter((record) =>
+    record.description.toLowerCase().includes(searchText.trim().toLowerCase()),
+  );
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -80,6 +86,22 @@ export default function RecordsPage() {
 
         <section className={styles.section}>
           <h2>登録した収支履歴</h2>
+
+          {/* 検索フォーム */}
+          {!loading && !notSignedIn && !error && records.length > 0 && (
+            <div className={styles.searchBox}>
+              <label htmlFor="record-search">内容を検索</label>
+              <input
+                id="record-search"
+                type="search"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="例：食費、交通費、アルバイト代"
+                className={styles.searchInput}
+              />
+              <p>検索結果：{filteredRecords.length}件</p>
+            </div>
+          )}
 
           {loading ? (
             <p>読み込み中...</p>
@@ -92,6 +114,8 @@ export default function RecordsPage() {
             <p role="alert">取得エラー：{error}</p>
           ) : records.length === 0 ? (
             <p>登録された収支記録はありません。</p>
+          ) : filteredRecords.length === 0 ? (
+            <p>検索条件に一致する記録はありません。</p>
           ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
@@ -106,7 +130,7 @@ export default function RecordsPage() {
                 </thead>
 
                 <tbody>
-                  {records.map((record) => (
+                  {filteredRecords.map((record) => (
                     <tr key={record.id}>
                       <td>{record.date}</td>
 

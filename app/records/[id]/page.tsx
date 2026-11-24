@@ -174,6 +174,9 @@ export default function RecordDetailPage() {
               </strong>
             </div>
             <div className={styles.actions}>
+              <Link href={`/records/${id}/edit`} className={styles.editButton}>
+                編集する
+              </Link>
               <button
                 type="button"
                 onClick={handleDelete}
