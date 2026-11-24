@@ -18,6 +18,8 @@ export default function RecordsPage() {
   // 収支履歴を管理
   const [records, setRecords] = useState<Transaction[]>([]);
   const [searchText, setSearchText] = useState("");
+  // 現在表示しているページ番号
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notSignedIn, setNotSignedIn] = useState(false);
@@ -76,6 +78,20 @@ export default function RecordsPage() {
     record.description.toLowerCase().includes(searchText.trim().toLowerCase()),
   );
 
+  // 1ページに表示する件数
+  const itemsPerPage = 10;
+
+  // 検索結果から総ページ数を計算
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+
+  // 現在のページに表示する記録を抽出
+  const startIndex = (currentPage - 1) * itemsPerPage;
+
+  const paginatedRecords = filteredRecords.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -95,7 +111,10 @@ export default function RecordsPage() {
                 id="record-search"
                 type="search"
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="例：食費、交通費、アルバイト代"
                 className={styles.searchInput}
               />
@@ -130,7 +149,7 @@ export default function RecordsPage() {
                 </thead>
 
                 <tbody>
-                  {filteredRecords.map((record) => (
+                  {paginatedRecords.map((record) => (
                     <tr key={record.id}>
                       <td>{record.date}</td>
 
@@ -160,6 +179,31 @@ export default function RecordsPage() {
                   ))}
                 </tbody>
               </table>
+
+              {/* ページ切り替え */}
+              {totalPages > 1 && (
+                <div className={styles.pagination}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    前へ
+                  </button>
+
+                  <span>
+                    {currentPage} / {totalPages} ページ
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    次へ
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </section>
