@@ -4,6 +4,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import styles from "./page.module.css";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // 収支データの型定義
 type Transaction = {
@@ -16,38 +17,74 @@ type Transaction = {
 
 export default function Home() {
   // 入力フォームの状態管理
+  const router = useRouter();
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [records, setRecords] = useState<Transaction[]>([]);
+  // ログイン状態を確認しているか
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Supabaseから収支記録を取得
-    async function fetchRecords() {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("id, type, amount, description, date")
-        .order("date", { ascending: false });
+    let active = true;
 
-      if (error) {
-        console.error("取得エラー:", error.message);
+    // 他のタブなどでログアウトした場合も対応
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setRecords([]);
+        setAuthLoading(true);
+        router.replace("/login");
+      }
+    });
+
+    async function fetchRecords() {
+      // ログインしているか確認
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (!active) return;
+
+      // 未ログインならログインページへ移動
+      if (authError || !authData.user) {
+        setRecords([]);
+        router.replace("/login");
         return;
       }
 
-      // 取得したデータをReactの状態に反映
-      const loadedRecords: Transaction[] = (data ?? []).map((record) => ({
-        id: record.id,
-        type: record.type as Transaction["type"],
-        amount: record.amount,
-        description: record.description,
-        date: record.date,
-      }));
+      // ログイン中のユーザーの記録を取得
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("id, type, amount, description, date")
+        .eq("user_id", authData.user.id)
+        .order("date", { ascending: false });
 
-      setRecords(loadedRecords);
+      if (!active) return;
+
+      if (error) {
+        console.error("取得エラー:", error.message);
+      } else {
+        const loadedRecords: Transaction[] = (data ?? []).map((record) => ({
+          id: record.id,
+          type: record.type as Transaction["type"],
+          amount: record.amount,
+          description: record.description,
+          date: record.date,
+        }));
+
+        setRecords(loadedRecords);
+      }
+
+      // ログイン状態の確認完了
+      setAuthLoading(false);
     }
 
     fetchRecords();
-  }, []);
+
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
 
   //：日付の状態管理
   const [date, setDate] = useState("");
@@ -121,11 +158,39 @@ export default function Home() {
     setDescription("");
   }
 
+  // ログアウト処理
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      alert("ログアウトに失敗しました：" + error.message);
+      return;
+    }
+
+    // ログアウト後に収支データをクリア
+    setRecords([]);
+
+    // ログインページへ移動
+    router.replace("/login");
+  }
+
+  // 認証確認中は収支登録画面を表示しない
+  if (authLoading) {
+    return <p>ログイン状態を確認中...</p>;
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>収支管理アプリ</h1>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={styles.logoutButton}
+          >
+            ログアウト
+          </button>
           <Link href="/records">すべての収支履歴を見る</Link>
           <p>毎月の収入と支出を管理できます</p>
         </header>

@@ -3,8 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "../../lib/supabase";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   // ：ログインフォームの状態
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +52,8 @@ export default function LoginPage() {
         if (error) {
           setMessage(error.message);
         } else {
-          setMessage("ログインに成功しました！");
+          // ログイン成功後、トップページへ移動
+          router.replace("/");
         }
       }
     } catch {
