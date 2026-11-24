@@ -1,36 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 収支管理アプリ
 
-## Getting Started
+## アプリ概要
 
-First, run the development server:
+毎月の収入と支出を記録・管理できるWebアプリです。
+
+アルバイト代などの収入や、食費・交通費などの支出を登録し、月ごとの収支状況を確認できます。
+
+## 公開URL
+
+https://next-kadai-pied.vercel.app
+
+## 使用技術
+
+- Next.js 16（App Router）
+- React
+- TypeScript
+- CSS Modules / globals.css
+- Supabase（データベース・認証）
+- GitHub（ソースコード管理）
+- Vercel（デプロイ）
+
+## 主な機能
+
+### 1. ユーザー認証
+
+- メールアドレスとパスワードによる新規登録
+- ログイン機能
+
+### 2. 収支記録の登録
+
+- 収入・支出の選択
+- 金額の入力
+- 内容の入力
+- 日付の指定
+- Supabaseへのデータ保存
+
+### 3. 月別収支の集計
+
+- 月ごとの収入合計
+- 月ごとの支出合計
+- 収入と支出の差額表示
+- 表示月の切り替え
+
+### 4. 収支一覧
+
+- 登録済みの収支記録を一覧表示
+- 日付の新しい順に表示
+- 各記録の詳細ページへの移動
+
+### 5. 収支詳細
+
+- 日付・種別・金額・内容の表示
+
+### 6. 編集・削除
+
+- 登録済みの収支記録を編集
+- 不要な収支記録を削除
+
+### 7. 検索機能
+
+- 内容のキーワード検索
+- 入力した文字を含む記録を表示
+
+### 8. ページネーション
+
+- 一覧を1ページ最大10件で表示
+- 「前へ」「次へ」でページを切り替え
+
+## ページ構成
+
+| URL                  | 内容                             |
+| -------------------- | -------------------------------- |
+| `/`                  | トップページ・収支登録・月別集計 |
+| `/login`             | 新規登録・ログイン               |
+| `/records`           | 収支一覧・検索・ページネーション |
+| `/records/[id]`      | 収支詳細・削除                   |
+| `/records/[id]/edit` | 収支編集                         |
+
+## データベース
+
+Supabaseの`transactions`テーブルで収支記録を管理します。
+
+主なカラム：
+
+- `id`：記録のID
+- `user_id`：ユーザーID
+- `type`：収入または支出
+- `amount`：金額
+- `description`：内容
+- `date`：日付
+- `created_at`：作成日時
+
+## ローカルでの起動方法
+
+### 1. 依存パッケージのインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+プロジェクト直下に`.env.local`を作成します。
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=SupabaseのURL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=SupabaseのPublishable Key
+```
+
+※ 実際の接続情報を設定してください。
+
+### 3. 開発サーバー起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで以下にアクセスします。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+http://localhost:4000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## デプロイ
 
-## Learn More
+GitHubの`main`ブランチとVercelを連携しています。
 
-To learn more about Next.js, take a look at the following resources:
+VercelにもSupabaseの環境変数を設定してからデプロイします。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 補足
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- SupabaseのRLSを利用してユーザーごとのデータアクセスを制御します。
+- `.env.local`はGitHubにアップロードしません。
+- 検索・ページネーションは取得済みデータをブラウザ側で処理しています。
