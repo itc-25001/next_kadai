@@ -156,3 +156,6 @@
   font-weight: 600;
   white-space: nowrap;
 }
+.field input[type="date"] {
+  cursor: pointer;
+}

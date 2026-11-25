@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import styles from "./page.module.css";
@@ -15,6 +16,17 @@ type Transaction = {
 };
 
 export default function RecordsPage() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <RecordsContent />
+    </Suspense>
+  );
+}
+
+function RecordsContent() {
+  // URLから選択された年月を取得
+  const searchParams = useSearchParams();
+  const selectedMonth = searchParams.get("month");
   // 収支履歴を管理
   const [records, setRecords] = useState<Transaction[]>([]);
   const [searchText, setSearchText] = useState("");
@@ -73,10 +85,18 @@ export default function RecordsPage() {
     };
   }, []);
 
-  // 検索キーワードを含む記録だけを抽出
-  const filteredRecords = records.filter((record) =>
-    record.description.toLowerCase().includes(searchText.trim().toLowerCase()),
-  );
+  // 検索キーワードと選択月で絞り込む
+  const filteredRecords = records.filter((record) => {
+    const matchesSearch = record.description
+      .toLowerCase()
+      .includes(searchText.trim().toLowerCase());
+
+    // 月が指定されていなければ全期間を対象にする
+    const matchesMonth =
+      !selectedMonth || record.date.slice(0, 7) === selectedMonth;
+
+    return matchesSearch && matchesMonth;
+  });
 
   // 1ページに表示する件数
   const itemsPerPage = 10;
@@ -96,7 +116,11 @@ export default function RecordsPage() {
     <main className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1>収支一覧</h1>
+          <h1>
+            {selectedMonth
+              ? `${selectedMonth.slice(0, 4)}年${Number(selectedMonth.slice(5))}月の収支一覧`
+              : "すべての収支一覧"}
+          </h1>
           <Link href="/">トップページに戻る</Link>
         </header>
 

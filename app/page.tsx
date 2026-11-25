@@ -90,14 +90,25 @@ export default function Home() {
   const [date, setDate] = useState("");
 
   // 表示する月の状態管理
+
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
+    const currentMonth = `${year}-${month}`;
 
-    return `${year}-${month}`;
+    // 保存した月があれば、その月を初期値にする
+    if (typeof window !== "undefined") {
+      const savedMonth = sessionStorage.getItem("selectedMonth");
+
+      if (savedMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(savedMonth)) {
+        return savedMonth;
+      }
+    }
+
+    // 保存がなければ今月を表示する
+    return currentMonth;
   });
-  //
 
   //：選択した月のデータを取得
   const monthlyRecords = records.filter(
@@ -191,7 +202,15 @@ export default function Home() {
           >
             ログアウト
           </button>
-          <Link href="/records">すべての収支履歴を見る</Link>
+
+          <nav className={styles.historyLinks}>
+            <Link href="/records">すべての収支履歴を見る</Link>
+
+            <Link href={`/records?month=${selectedMonth}`}>
+              表示する月の収支履歴を見る
+            </Link>
+          </nav>
+
           <p>毎月の収入と支出を管理できます</p>
         </header>
 
@@ -204,7 +223,20 @@ export default function Home() {
             <input
               type="month"
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              onChange={(e) => {
+                const month = e.target.value;
+
+                setSelectedMonth(month);
+
+                // 選択した月をブラウザに保存
+                if (month) {
+                  sessionStorage.setItem("selectedMonth", month);
+                } else {
+                  sessionStorage.removeItem("selectedMonth");
+                }
+              }}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => e.currentTarget.showPicker()}
             />
           </label>
 
@@ -247,6 +279,8 @@ export default function Home() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  // 入力欄をクリックするとカレンダーを表示
+                  onClick={(e) => e.currentTarget.showPicker()}
                   required
                 />
               </label>
@@ -280,11 +314,18 @@ export default function Home() {
                 内容
                 <input
                   type="text"
+                  list="description-options"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="例：食費、アルバイト代"
+                  placeholder="内容を選択または入力"
                   required
                 />
+                {/* 内容の選択候補 */}
+                <datalist id="description-options">
+                  <option value="食費" />
+                  <option value="アルバイト代" />
+                  <option value="家賃" />
+                </datalist>
               </label>
             </div>
 

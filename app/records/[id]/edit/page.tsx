@@ -169,6 +169,8 @@ export default function EditRecordPage() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                // 入力欄をクリックするとカレンダーを表示
+                onClick={(e) => e.currentTarget.showPicker()}
                 required
               />
             </label>

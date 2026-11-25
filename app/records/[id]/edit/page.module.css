@@ -80,3 +80,6 @@
     padding: 18px;
   }
 }
+.field input[type="date"] {
+  cursor: pointer;
+}
