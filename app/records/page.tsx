@@ -131,17 +131,29 @@ function RecordsContent() {
           {!loading && !notSignedIn && !error && records.length > 0 && (
             <div className={styles.searchBox}>
               <label htmlFor="record-search">内容を検索</label>
+
               <input
                 id="record-search"
                 type="search"
+                list="search-options"
                 value={searchText}
                 onChange={(e) => {
                   setSearchText(e.target.value);
                   setCurrentPage(1);
                 }}
-                placeholder="例：食費、交通費、アルバイト代"
+                placeholder="内容を選択または検索"
                 className={styles.searchInput}
               />
+
+              {/* 検索候補 */}
+              <datalist id="search-options">
+                <option value="食費" />
+                <option value="アルバイト代" />
+                <option value="家賃" />
+                <option value="交通費" />
+                <option value="買い物" />
+              </datalist>
+
               <p>検索結果：{filteredRecords.length}件</p>
             </div>
           )}

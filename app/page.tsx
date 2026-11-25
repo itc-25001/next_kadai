@@ -331,6 +331,7 @@ export default function Home() {
                 <datalist id="description-options">
                   <option value="食費" />
                   <option value="アルバイト代" />
+                  <option value="交通費" />
                   <option value="家賃" />
                 </datalist>
               </label>
