@@ -159,3 +159,40 @@
 .field input[type="date"] {
   cursor: pointer;
 }
+
+.bulkDeleteArea {
+  padding: 20px;
+  margin-bottom: 24px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
+.bulkDeleteArea p {
+  margin-bottom: 12px;
+  color: #7f1d1d;
+}
+
+.bulkDeleteButton {
+  padding: 12px 20px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.bulkDeleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.bulkDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bulkDeleteArea .deleteError {
+  margin-top: 12px;
+  color: #dc2626;
+}

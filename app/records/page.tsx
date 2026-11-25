@@ -34,6 +34,9 @@ function RecordsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // 月別一括削除の状態
+  const [deletingMonth, setDeletingMonth] = useState(false);
+  const [deleteMonthError, setDeleteMonthError] = useState("");
   const [notSignedIn, setNotSignedIn] = useState(false);
 
   // Supabaseから登録済みの収支データを取得
@@ -85,6 +88,105 @@ function RecordsContent() {
     };
   }, []);
 
+  // 選択した月の収支を一括削除
+  async function handleDeleteMonth() {
+    // 月が指定されていなければ削除しない
+    if (
+      !selectedMonth ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth) ||
+      deletingMonth
+    ) {
+      return;
+    }
+
+    const [yearText, monthText] = selectedMonth.split("-");
+    const year = Number(yearText);
+    const month = Number(monthText);
+
+    // 削除対象の期間を作成
+    const startDate = `${selectedMonth}-01`;
+
+    const nextMonth =
+      month === 12
+        ? `${String(year + 1).padStart(4, "0")}-01-01`
+        : `${yearText}-${String(month + 1).padStart(2, "0")}-01`;
+
+    const monthLabel = `${year}年${month}月`;
+
+    setDeletingMonth(true);
+    setDeleteMonthError("");
+
+    try {
+      // ログインユーザーを確認
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        setDeleteMonthError("ログインが必要です。");
+        return;
+      }
+
+      // 対象月の記録件数を取得
+      const { count, error: countError } = await supabase
+        .from("transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", authData.user.id)
+        .gte("date", startDate)
+        .lt("date", nextMonth);
+
+      if (countError) {
+        setDeleteMonthError(countError.message);
+        return;
+      }
+
+      if (!count) {
+        alert(`${monthLabel}に削除する記録はありません。`);
+        return;
+      }
+
+      // 削除前の最終確認
+      const confirmation = window.prompt(
+        `${monthLabel}の収支記録${count}件をすべて削除します。\n` +
+          `この操作は取り消せません。\n\n` +
+          `削除する場合は「${selectedMonth}」と入力してください。`,
+      );
+
+      if (confirmation !== selectedMonth) {
+        return;
+      }
+
+      // 対象月の自分の記録だけを削除
+      const { error: deleteError, count: deletedCount } = await supabase
+        .from("transactions")
+        .delete({ count: "exact" })
+        .eq("user_id", authData.user.id)
+        .gte("date", startDate)
+        .lt("date", nextMonth);
+
+      if (deleteError) {
+        setDeleteMonthError(deleteError.message);
+        return;
+      }
+
+      // 削除結果を画面に反映
+      setRecords((prev) =>
+        prev.filter(
+          (record) => record.date < startDate || record.date >= nextMonth,
+        ),
+      );
+
+      setCurrentPage(1);
+
+      alert(
+        `${monthLabel}の収支記録を${deletedCount ?? count}件削除しました。`,
+      );
+    } catch {
+      setDeleteMonthError("削除処理で通信エラーが発生しました。");
+    } finally {
+      setDeletingMonth(false);
+    }
+  }
+
   // 検索キーワードと選択月で絞り込む
   const filteredRecords = records.filter((record) => {
     const matchesSearch = record.description
@@ -126,6 +228,32 @@ function RecordsContent() {
 
         <section className={styles.section}>
           <h2>登録した収支履歴</h2>
+
+          {/* 月が指定された場合だけ一括削除ボタンを表示 */}
+          {selectedMonth &&
+            /^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth) &&
+            !loading &&
+            !notSignedIn &&
+            !error && (
+              <div className={styles.bulkDeleteArea}>
+                <p>{selectedMonth}の収支記録をすべて削除できます。</p>
+
+                <button
+                  type="button"
+                  onClick={handleDeleteMonth}
+                  disabled={deletingMonth}
+                  className={styles.bulkDeleteButton}
+                >
+                  {deletingMonth ? "削除処理中..." : "この月の収支を一括削除"}
+                </button>
+
+                {deleteMonthError && (
+                  <p role="alert" className={styles.deleteError}>
+                    {deleteMonthError}
+                  </p>
+                )}
+              </div>
+            )}
 
           {/* 検索フォーム */}
           {!loading && !notSignedIn && !error && records.length > 0 && (

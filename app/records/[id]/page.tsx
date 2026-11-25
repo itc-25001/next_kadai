@@ -195,9 +195,13 @@ export default function RecordDetailPage() {
           </div>
         )}
 
-        <Link href="/records" className={styles.backLink}>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className={styles.backLink}
+        >
           一覧ページに戻る
-        </Link>
+        </button>
       </div>
     </main>
   );
