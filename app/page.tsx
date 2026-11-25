@@ -305,17 +305,32 @@ export default function Home() {
                 </select>
               </label>
 
-              <label className={styles.field}>
-                金額
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                />
-              </label>
+              <div className={styles.field}>
+                <label htmlFor="amount">金額</label>
+
+                <div className={styles.amountControls}>
+                  <input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                  />
+
+                  {/* クリックするたびに1000円加算 */}
+                  <button
+                    type="button"
+                    className={styles.addAmountButton}
+                    onClick={() =>
+                      setAmount((prev) => String((Number(prev) || 0) + 1000))
+                    }
+                  >
+                    +1000円
+                  </button>
+                </div>
+              </div>
 
               <label className={styles.field}>
                 内容

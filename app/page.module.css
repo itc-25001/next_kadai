@@ -268,3 +268,29 @@
     transform: rotate(360deg);
   }
 }
+
+.amountControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.amountControls input {
+  flex: 1;
+  min-width: 0;
+}
+
+.addAmountButton {
+  padding: 12px 16px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.addAmountButton:hover {
+  background-color: #1d4ed8;
+}
