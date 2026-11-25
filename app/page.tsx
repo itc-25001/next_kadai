@@ -187,7 +187,14 @@ export default function Home() {
 
   // 認証確認中は収支登録画面を表示しない
   if (authLoading) {
-    return <p>ログイン状態を確認中...</p>;
+    return (
+      <main className={styles.loadingPage}>
+        <div className={styles.loadingContent}>
+          <div className={styles.spinner}></div>
+          <p>ログイン状態を確認中...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
