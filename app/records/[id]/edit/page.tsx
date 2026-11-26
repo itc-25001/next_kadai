@@ -186,26 +186,50 @@ export default function EditRecordPage() {
               </select>
             </label>
 
-            <label className={styles.field}>
-              金額
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </label>
+            <div className={styles.field}>
+              <label htmlFor="edit-amount">金額</label>
+
+              <div className={styles.amountControls}>
+                <input
+                  id="edit-amount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+
+                {/* クリックするたびに1000円加算 */}
+                <button
+                  type="button"
+                  className={styles.addAmountButton}
+                  onClick={() =>
+                    setAmount((prev) => String((Number(prev) || 0) + 1000))
+                  }
+                >
+                  +1000円
+                </button>
+              </div>
+            </div>
 
             <label className={styles.field}>
               内容
               <input
                 type="text"
+                list="edit-description-options"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="内容を選択または入力"
                 required
               />
+              {/* 内容の選択候補 */}
+              <datalist id="edit-description-options">
+                <option value="食費" />
+                <option value="アルバイト代" />
+                <option value="交通費" />
+                <option value="家賃" />
+              </datalist>
             </label>
 
             {error && (
