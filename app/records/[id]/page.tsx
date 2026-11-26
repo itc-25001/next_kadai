@@ -197,7 +197,16 @@ export default function RecordDetailPage() {
 
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            const params = new URLSearchParams(window.location.search);
+            const month = params.get("month");
+
+            router.push(
+              month
+                ? `/records?month=${encodeURIComponent(month)}`
+                : "/records",
+            );
+          }}
           className={styles.backLink}
         >
           一覧ページに戻る

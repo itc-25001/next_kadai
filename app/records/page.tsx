@@ -333,7 +333,7 @@ function RecordsContent() {
                       </td>
                       <td>
                         <Link
-                          href={`/records/${record.id}`}
+                          href={`/records/${record.id}${selectedMonth ? `?month=${selectedMonth}` : ""}`}
                           className={styles.detailLink}
                         >
                           詳細を見る

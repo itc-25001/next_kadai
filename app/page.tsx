@@ -111,9 +111,11 @@ export default function Home() {
   });
 
   //：選択した月のデータを取得
-  const monthlyRecords = records.filter(
-    (record) => record.date.slice(0, 7) === selectedMonth,
-  );
+
+  const monthlyRecords = records
+    .filter((record) => record.date.slice(0, 7) === selectedMonth)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
   //
 
   // 収入の合計
@@ -164,7 +166,7 @@ export default function Home() {
     }
 
     // 保存に成功したデータを画面に追加
-    setRecords((prev) => [...prev, data]);
+    setRecords((prev) => [data, ...prev]);
     setAmount("");
     setDescription("");
   }
